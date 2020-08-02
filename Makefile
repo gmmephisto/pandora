@@ -1,9 +1,13 @@
-.PHONY: all test lint vet fmt travis coverage checkfmt prepare deps
+.PHONY: all build test lint vet fmt travis coverage checkfmt prepare deps
 
 NO_COLOR=\033[0m
 OK_COLOR=\033[32;01m
 ERROR_COLOR=\033[31;01m
 WARN_COLOR=\033[33;01m
+
+GOOS       ?= $(shell go env GOOS)
+GOARCH     ?= $(shell go env GOARCH)
+GO_LDFLAGS := -extldflags "static" -w -s
 
 
 all: test vet checkfmt
@@ -11,6 +15,12 @@ all: test vet checkfmt
 travis: test checkfmt coverage
 
 prepare: fmt test vet
+
+build: out/pandora
+
+out/pandora: deps
+	@echo "$(OK_COLOR)Build pandora$(NO_COLOR)"
+	@GOARCH=$(GOARCH) GOOS=$(GOOS) CGO_ENABLED=0 go build -ldflags "$(GO_LDFLAGS)" -o $@
 
 test:
 	@echo "$(OK_COLOR)Test packages$(NO_COLOR)"
