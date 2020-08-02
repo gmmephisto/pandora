@@ -1,4 +1,4 @@
-.PHONY: all build test lint vet fmt travis coverage checkfmt prepare deps
+.PHONY: all build release test lint vet fmt travis coverage checkfmt prepare deps
 
 NO_COLOR=\033[0m
 OK_COLOR=\033[32;01m
@@ -8,6 +8,9 @@ WARN_COLOR=\033[33;01m
 GOOS       ?= $(shell go env GOOS)
 GOARCH     ?= $(shell go env GOARCH)
 GO_LDFLAGS := -extldflags "static" -w -s
+
+GOX_OS     ?= linux darwin
+GOX_ARCH   ?= amd64
 
 
 all: test vet checkfmt
@@ -21,6 +24,12 @@ build: out/pandora
 out/pandora: deps
 	@echo "$(OK_COLOR)Build pandora$(NO_COLOR)"
 	@GOARCH=$(GOARCH) GOOS=$(GOOS) CGO_ENABLED=0 go build -ldflags "$(GO_LDFLAGS)" -o $@
+
+release:
+	@echo "$(OK_COLOR)Install gox$(NO_COLOR)"
+	@go get github.com/mitchellh/gox
+	@echo "$(OK_COLOR)Build pandora$(NO_COLOR)"
+	@CGO_ENABLED=0 gox -os="$(GOX_OS)" -arch="$(GOX_ARCH)" -ldflags="$(GO_LDFLAGS)" -output="out/{{.Dir}}_{{.OS}}_{{.Arch}}"
 
 test:
 	@echo "$(OK_COLOR)Test packages$(NO_COLOR)"
